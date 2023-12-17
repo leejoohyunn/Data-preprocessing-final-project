@@ -1042,10 +1042,165 @@ Hidden Layer Sizes: (10, 20, 30), MSE: 63.97608226871222
 ## 1.3 튜닝 방법 소개
 ### 1. **Manual Search**: 
 rule of thumb 이라고도 하며, 경험 혹은 감으로 하이퍼파라미터 값을 조정하는 방법이다. 하이퍼파라미터별 흔히 알려져있는 값들을 사용하므로 편하지만, 하이퍼파라미터 조합별 성능을 비교하기 어여운 단점이 있다. 
+```python
+import numpy as np
+from sklearn.datasets import make_regression
+from sklearn.model_selection import train_test_split
+from sklearn.linear_model import SGDRegressor
+from sklearn.metrics import mean_squared_error
+
+# 데이터 생성
+X, y = make_regression(n_samples=100, n_features=1, noise=10, random_state=42)
+
+# 데이터 분할
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+# 나머지 파라미터 고정 및 시도할 학습률 값들
+alpha = 0.0001  # 학습률을 수동으로 조절
+learning_rates = [0.01, 0.05, 0.1, 0.5, 1.0]
+
+# 각 학습률에 대해 모델 학습 및 평가
+for lr in learning_rates:
+    model = SGDRegressor(learning_rate='constant', eta0=alpha, max_iter=1000, random_state=42, alpha=0.0001, tol=1e-3, penalty=None)
+    model.set_params(eta0=lr)  # 수동으로 학습률 변경
+    model.fit(X_train, y_train)
+
+    # 예측 및 평가
+    y_pred = model.predict(X_test)
+    mse = mean_squared_error(y_test, y_pred)
+
+    # 결과 출력
+    print(f"Learning Rate: {lr}, MSE: {mse}")
+
+# 최적 학습률을 사용하여 최종 모델 학습
+best_lr = 0.01  # 최적의 학습률을 선택
+final_model = SGDRegressor(learning_rate='constant', eta0=alpha, max_iter=1000, random_state=42, alpha=0.0001, tol=1e-3, penalty=None)
+final_model.set_params(eta0=best_lr)
+final_model.fit(X_train, y_train)
+
+# 최종 모델의 예측 결과 시각화
+import matplotlib.pyplot as plt
+
+plt.scatter(X_test, y_test, color='black', marker='o', label='Test Data')
+plt.plot(X_test, final_model.predict(X_test), label=f'Best Learning Rate: {best_lr}', alpha=0.7)
+plt.title('Linear Regression with Manual Search for Learning Rate')
+plt.xlabel('X')
+plt.ylabel('y')
+plt.legend()
+plt.show()
+
+```
+arning Rate: 0.01, MSE: 104.97805743190273
+Learning Rate: 0.05, MSE: 115.96412461861462
+Learning Rate: 0.1, MSE: 112.82471835353513
+Learning Rate: 0.5, MSE: 161.63202677218277
+Learning Rate: 1.0, MSE: 429.13301012288537
+```
+![manual search](https://github.com/leejoohyunn/images/blob/main/%EB%8B%A4%EC%9A%B4%EB%A1%9C%EB%93%9C%20(9).png)
+
 ### 2. **Grid Search**:
-가능한 모든 조합의 하이퍼파라미터로 훈련시켜 최적의 조합을 찾는 방법이다. (exhaustive searching) 일부 파라미터는 범위가 없기 때문에 사용자가 경계를 지정해주기도 한다. 모든 가능성을 살펴보기 때문에 시간이 올래 걸린다는 단점이 있다. 
+가능한 모든 조합의 하이퍼파라미터로 훈련시켜 최적의 조합을 찾는 방법이다. (exhaustive searching) 일부 파라미터는 범위가 없기 때문에 사용자가 경계를 지정해주기도 한다. 모든 가능성을 살펴보기 때문에 시간이 올래 걸린다는 단점이 있다.
+```python
+import numpy as np
+from sklearn.datasets import make_regression
+from sklearn.model_selection import train_test_split, GridSearchCV
+from sklearn.linear_model import SGDRegressor
+from sklearn.metrics import mean_squared_error
+
+# 데이터 생성
+X, y = make_regression(n_samples=100, n_features=1, noise=10, random_state=42)
+
+# 데이터 분할
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+# 파라미터 그리드 정의
+param_grid = {
+    'eta0': [0.0001, 0.001, 0.01, 0.1, 0.5],  # 시도할 학습률 값들
+    'alpha': [0.0001],  # 나머지 파라미터 고정
+    'max_iter': [1000],  # 나머지 파라미터 고정
+    'penalty': [None],  # 나머지 파라미터 고정
+}
+
+# SGDRegressor 모델 생성
+sgd = SGDRegressor(learning_rate='constant', random_state=42, tol=1e-3)
+
+# GridSearchCV를 사용하여 최적의 학습률 찾기
+grid_search = GridSearchCV(sgd, param_grid, scoring='neg_mean_squared_error', cv=5)
+grid_search.fit(X_train, y_train)
+
+# 최적의 학습률과 그때의 모델 출력
+best_eta0 = grid_search.best_params_['eta0']
+best_model = grid_search.best_estimator_
+print(f"Best Learning Rate: {best_eta0}")
+
+# 최종 모델의 예측 결과 시각화
+import matplotlib.pyplot as plt
+
+plt.scatter(X_test, y_test, color='black', marker='o', label='Test Data')
+plt.plot(X_test, best_model.predict(X_test), label=f'Best Learning Rate: {best_eta0}', alpha=0.7)
+plt.title('Linear Regression with Grid Search for Learning Rate')
+plt.xlabel('X')
+plt.ylabel('y')
+plt.legend()
+plt.show()
+```
+```python
+Best Learning Rate: 0.01
+```
+![grid result](https://github.com/leejoohyunn/images/blob/main/%EB%8B%A4%EC%9A%B4%EB%A1%9C%EB%93%9C%20(10).png)
+
 ### 3. **Random Search**:
 경계 내에서 임의의 조합을 추출해 최적의 조합을 찾는 방법이다. Grid Search에 비해 시간이 단축된다는 장점이 있다. 하지만 Grid Search와 마찬가지로 최적의 하이퍼파라미터를 위해 광범위한 범위를 탐색하기 때문에 비효율적이다. 
+```python
+import numpy as np
+from sklearn.datasets import make_regression
+from sklearn.model_selection import train_test_split, RandomizedSearchCV
+from sklearn.linear_model import SGDRegressor
+from sklearn.metrics import mean_squared_error
+
+# 데이터 생성
+X, y = make_regression(n_samples=100, n_features=1, noise=10, random_state=42)
+
+# 데이터 분할
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+# 파라미터 분포 정의
+param_dist = {
+    'eta0': np.logspace(-5, 0, num=1000),  # 학습률을 로그 스케일로 정의
+    'alpha': [0.0001],  # 나머지 파라미터 고정
+    'max_iter': [1000],  # 나머지 파라미터 고정
+    'penalty': [None],  # 나머지 파라미터 고정
+}
+
+# SGDRegressor 모델 생성
+sgd = SGDRegressor(learning_rate='constant', random_state=42, tol=1e-3)
+
+# RandomizedSearchCV를 사용하여 최적의 학습률 찾기
+random_search = RandomizedSearchCV(sgd, param_distributions=param_dist, n_iter=10, scoring='neg_mean_squared_error', cv=5, random_state=42)
+random_search.fit(X_train, y_train)
+
+# 최적의 학습률과 그때의 모델 출력
+best_eta0 = random_search.best_params_['eta0']
+best_model = random_search.best_estimator_
+print(f"Best Learning Rate: {best_eta0}")
+
+# 최종 모델의 예측 결과 시각화
+import matplotlib.pyplot as plt
+
+plt.scatter(X_test, y_test, color='black', marker='o', label='Test Data')
+plt.plot(X_test, best_model.predict(X_test), label=f'Best Learning Rate: {best_eta0}', alpha=0.7)
+plt.title('Linear Regression with Random Search for Learning Rate')
+plt.xlabel('X')
+plt.ylabel('y')
+plt.legend()
+plt.show()
+
+```
+```python
+Best Learning Rate: 0.031878912926776456
+```
+![random result](https://github.com/leejoohyunn/images/blob/main/%EB%8B%A4%EC%9A%B4%EB%A1%9C%EB%93%9C%20(11).png)
+
 ### 4. **Bayesian Optimization**:
 목적함수를 최소 혹은 최대일 때 최적의 해를 구하는 방법이다. loss와 accuracy가 지표가 되어 우리가 구하고자하는 목적함수이다. 베이지안 최적화는 목적함수와 하이퍼파라미터로 Surrogate Model을 제작 및 평가하고 Acquisition Function으로 인풋 조합을 추천하는 과정을 반복하게 된다. 
 ![베이지안 최적화 이미지](https://github.com/leejoohyunn/images/blob/main/%EC%8A%A4%ED%81%AC%EB%A6%B0%EC%83%B7%202023-12-17%20221133.png)
@@ -1053,8 +1208,57 @@ rule of thumb 이라고도 하며, 경험 혹은 감으로 하이퍼파라미터
 >surrogate model: 목적함수에 대한 확률적 추정 모델이다
 >Acquisition Function: Surrogate model의 결과를 바탕으로 하이퍼파라미터 조합을 추천하는 함수이다.
 
-### 5. **Early Stopping**
-### 6. **Gradient-based Optimization**:
+```python
+import numpy as np
+from sklearn.datasets import make_regression
+from sklearn.model_selection import train_test_split
+from skopt import BayesSearchCV
+from sklearn.linear_model import SGDRegressor
+from sklearn.metrics import mean_squared_error
+
+# 데이터 생성
+X, y = make_regression(n_samples=100, n_features=1, noise=10, random_state=42)
+
+# 데이터 분할
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+# 파라미터 분포 정의
+param_dist = {
+    'eta0': (1e-5, 1.0, 'log-uniform'),
+    'alpha': (1e-5, 1e-1, 'log-uniform'),
+    'max_iter': (100, 2000),  # 수정: 더 넓은 범위로 설정
+    'penalty': [None],
+}
+
+# SGDRegressor 모델 생성
+sgd = SGDRegressor(learning_rate='constant', random_state=42, tol=1e-3)
+
+# BayesSearchCV를 사용하여 최적의 학습률 찾기
+bayes_search = BayesSearchCV(sgd, search_spaces=param_dist, n_iter=10, scoring='neg_mean_squared_error', cv=5, random_state=42)
+bayes_search.fit(X_train, y_train)
+
+# 최적의 학습률과 그때의 모델 출력
+best_eta0 = bayes_search.best_params_['eta0']
+best_model = bayes_search.best_estimator_
+print(f"Best Learning Rate: {best_eta0}")
+
+# 최종 모델의 예측 결과 시각화
+import matplotlib.pyplot as plt
+
+plt.scatter(X_test, y_test, color='black', marker='o', label='Test Data')
+plt.plot(X_test, best_model.predict(X_test), label=f'Best Learning Rate: {best_eta0}', alpha=0.7)
+plt.title('Linear Regression with Bayesian Optimization for Learning Rate')
+plt.xlabel('X')
+plt.ylabel('y')
+plt.legend()
+plt.show()
+```
+```python
+Best Learning Rate: 0.043513970791520494
+```
+![bayseian result](https://github.com/leejoohyunn/images/blob/main/%EB%8B%A4%EC%9A%B4%EB%A1%9C%EB%93%9C%20(12).png)
+
+### 5. **Gradient-based Optimization**:
 예측값과 실제값간 차이인 손실함수를 최소화하는 파라미터 조합을 찾는 방법이다. 이를 위해서는 가중치(weight)이나  편향(bias)를 업데이트해야합니다. 하지만 경사하강법의 한계로는 첫 번째, local minimum에 빠지기 쉽다는 것입니다. 두 번째, 안장점(Saddle point)를 벗어나지 못한다는 것이다. 
 
 >최적의 가중치를 찾는 방법은 다음과 같다
