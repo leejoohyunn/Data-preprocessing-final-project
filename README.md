@@ -4,8 +4,7 @@
 ### 1.1.1 하이퍼파라미터와 모델 매개변수의 차이 (Hyperparameter vs. Parameter)
 - 파라미터(매개변수): 모델이 데이터에서 규칙을 학습하는 데 사용되는 변수이며 훈련 과정에서 알고리즘에 의해 업데이트 됩니다. 파라미터에 대해 최적의 값을 설정하지 않지만, 데이터에서 자체 값을 학습합니다. 파라미터의 최적 값이 찾아지면 모델은 훈련을 마칩니다.
 - 하이퍼파라미터(초매개변수): 모델 훈련을 제어하는 변수입니다. 따라서 하이퍼파라미터는 파라미터의 값을 제어할 수 있습니다. 즉, 파라미터의 최적 값은 사용하는 하이퍼파라미터의 값에 따라 달라집니다. 파라미터와는 달리, 하이퍼파라미터는 데이터에서 값을 학습하지 않고, 모델을 훈련하기 전에 수동으로 지정해야 합니다. 일단 지정되면 하이퍼파라미터 값은 모델 훈련 중에 고정됩니다. 
-(https://medium.com/data-science-365/parameters-vs-hyperparameters-what-is-the-difference-5f40e16e2e82)
-(https://velog.io/@emseoyk/%ED%95%98%EC%9D%B4%ED%8D%BC%ED%8C%8C%EB%9D%BC%EB%AF%B8%ED%84%B0-%ED%8A%9C%EB%8B%9D)
+
 
 | 하이퍼파리미터                             | 파라미터                                          |
 |------------------------------------------:|--------------------------------------------------:|
@@ -109,7 +108,6 @@ Learning Rate: 0.001, MSE: 2.0816606850501587
 ![배치 사이즈 이미지](https://github.com/leejoohyunn/images/blob/main/%EB%8B%A4%EC%9A%B4%EB%A1%9C%EB%93%9C.png
 )
 ![배치 사이즈 이미지](https://github.com/leejoohyunn/images/blob/main/%EC%8A%A4%ED%81%AC%EB%A6%B0%EC%83%B7%202023-12-17%20160749.png)
-https://wikidocs.net/55580
 
 > **미니 배치**
 > 미니 배치란, 전체 데이터를 N등분해 각각의 학습 데이터를 배치 방식으로 학습시킨다. 즉, 전체 데이터 세을 몇 개의 데이터셋으로 나누었을 때, 그 작은 데이터 셋의 뭉치입니다. 미니 배치를 사용하는 이유는 데이터가 많을 때, 길어지는 시간이나 데이터의 손실을 줄이기 위해서 입니다.
@@ -304,7 +302,6 @@ Epochs: 2000, MSE: 0.661203028560142
 >https://goatlab.tistory.com/124
 
 ![배치 사이즈 이미지](https://github.com/leejoohyunn/images/blob/main/%EC%8A%A4%ED%81%AC%EB%A6%B0%EC%83%B7%202023-12-17%20170336.png)
-https://sacko.tistory.com/45
 
 ```python
 import numpy as np
@@ -405,7 +402,6 @@ Weight Decay: 1.0, MSE: 0.6609202933086811
 
 >**앙상블 기법(Ensemble)**:
 >여러 모델을 종합적으로 고려해 최적의 결과를 찾는것이다. 학습할 수 있는 장비가 많을 때 사용하는 방법으로, 다수의 돗립적인 학습 모델을 만들어 각자 학습한 뒤 모델들을 합쳐 한 번의 예측을 만드는것입니다. 이러한 점에서 앙상블은 드롭아웃과 유사하다는 것을 알 수 있습니다. 
-https://childult-programmer.tistory.com/44
 >
 ```python
 import numpy as np
@@ -567,7 +563,6 @@ Dropout Rate: 0.8, MSE: 0.8668981023338229
 >
 >사용:
    매우 깊은 네트워크에서 특히 성능 향상을 위해 사용.
-https://m.blog.naver.com/PostView.naver?isHttpsRedirect=true&blogId=handuelly&logNo=221824080339
 ![활성화함수 이미지](https://github.com/leejoohyunn/images/blob/main/%EC%8A%A4%ED%81%AC%EB%A6%B0%EC%83%B7%202023-12-17%20181409.png)
 
 ```python
@@ -721,7 +716,7 @@ https://velog.io/@freesky/Optimizer
 >
 >과거의 그래디언트 정보를 사용하여 가중치 업데이트.
 기존 SGD에 비해 더 빠른 수렴을 도모하며, 지역 최소값에서 덜 갇히는 경향.
-https://heeya-stupidbutstudying.tistory.com/entry/ML-%EC%8B%A0%EA%B2%BD%EB%A7%9D%EC%97%90%EC%84%9C%EC%9D%98-Optimizer-%EC%97%AD%ED%95%A0%EA%B3%BC-%EC%A2%85%EB%A5%98
+
 ```python
 import numpy as np
 import matplotlib.pyplot as plt
@@ -1037,7 +1032,6 @@ Hidden Layer Sizes: (10, 20, 30), MSE: 63.97608226871222
 >![스트라이드 이미지](https://github.com/leejoohyunn/images/blob/main/%EC%8A%A4%ED%81%AC%EB%A6%B0%EC%83%B7%202023-12-17%20211547.png) https://excelsior-cjh.tistory.com/79
 >
 
-(https://doug.tistory.com/44)
 
 ## 1.3 튜닝 방법 소개
 ### 1. **Manual Search**: 
@@ -1264,4 +1258,83 @@ Best Learning Rate: 0.043513970791520494
 >최적의 가중치를 찾는 방법은 다음과 같다
 >![가중치 구하는 이미지](https://github.com/leejoohyunn/images/blob/main/%EC%8A%A4%ED%81%AC%EB%A6%B0%EC%83%B7%202023-12-17%20221820.png)
 
+```python
+import numpy as np
+from sklearn.datasets import make_regression
+from sklearn.model_selection import train_test_split
+from skopt import BayesSearchCV
+from skopt.space import Real, Integer, Categorical
+from sklearn.base import BaseEstimator, RegressorMixin
+from sklearn.metrics import mean_squared_error
 
+class GradientDescentRegressor(BaseEstimator, RegressorMixin):
+    def __init__(self, learning_rate=0.01, max_iter=1000, tol=1e-3):
+        self.learning_rate = learning_rate
+        self.max_iter = max_iter
+        self.tol = tol
+        self.weights = None
+        self.bias = None
+
+    def fit(self, X, y):
+        n_samples, n_features = X.shape
+        self.weights = np.zeros(n_features)
+        self.bias = 0
+
+        for _ in range(self.max_iter):
+            y_pred = self.predict(X)
+            error = y_pred - y
+
+            # 경사하강법 업데이트
+            dw = (1/n_samples) * np.dot(X.T, error)
+            db = (1/n_samples) * np.sum(error)
+
+            self.weights -= self.learning_rate * dw
+            self.bias -= self.learning_rate * db
+
+            # 손실 계산 및 수렴 확인
+            loss = mean_squared_error(y, y_pred)
+            if loss < self.tol:
+                break
+
+    def predict(self, X):
+        return np.dot(X, self.weights) + self.bias
+
+# 데이터 생성
+X, y = make_regression(n_samples=100, n_features=1, noise=10, random_state=42)
+
+# 데이터 분할
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+# 파라미터 분포 정의
+param_dist = {
+    'learning_rate': (1e-5, 1.0, 'log-uniform'),
+    'max_iter': (100, 2000),
+}
+
+# GradientDescentRegressor 모델 생성
+gd_reg = GradientDescentRegressor()
+
+# BayesSearchCV를 사용하여 최적의 학습률 찾기
+bayes_search = BayesSearchCV(gd_reg, search_spaces=param_dist, n_iter=10, scoring='neg_mean_squared_error', cv=5, random_state=42)
+bayes_search.fit(X_train, y_train)
+
+# 최적의 학습률과 그때의 모델 출력
+best_learning_rate = bayes_search.best_params_['learning_rate']
+best_model = bayes_search.best_estimator_
+print(f"Best Learning Rate: {best_learning_rate}")
+
+# 최종 모델의 예측 결과 시각화
+import matplotlib.pyplot as plt
+
+plt.scatter(X_test, y_test, color='black', marker='o', label='Test Data')
+plt.plot(X_test, best_model.predict(X_test), label=f'Best Learning Rate: {best_learning_rate}', alpha=0.7)
+plt.title('Linear Regression with Bayesian Optimization for Learning Rate (Gradient Descent)')
+plt.xlabel('X')
+plt.ylabel('y')
+plt.legend()
+plt.show()
+```
+```python
+Best Learning Rate: 0.005212131190318165
+```
+![경사하강법](https://github.com/leejoohyunn/images/blob/main/%EB%8B%A4%EC%9A%B4%EB%A1%9C%EB%93%9C%20(13).png)
