@@ -111,7 +111,6 @@ Learning Rate: 0.001, MSE: 2.0816606850501587
 
 > **미니 배치**
 > 미니 배치란, 전체 데이터를 N등분해 각각의 학습 데이터를 배치 방식으로 학습시킨다. 즉, 전체 데이터 세을 몇 개의 데이터셋으로 나누었을 때, 그 작은 데이터 셋의 뭉치입니다. 미니 배치를 사용하는 이유는 데이터가 많을 때, 길어지는 시간이나 데이터의 손실을 줄이기 위해서 입니다.
-https://welcome-to-dewy-world.tistory.com/86
 
 ```python
 import numpy as np
@@ -299,7 +298,7 @@ Epochs: 2000, MSE: 0.661203028560142
 >**L1 규제**: 각 weight의 제곱합에 규제 강도(Regularization) λ를 곱하고 그 값을 loss function(손실함수)에 더한다. λ를 크게 하면 가중치가 감소되고, λ를 작게하면 가중치가 증가한다. 일반적으로 L2 규제가 많이 쓰인다. 
 
  >**L2 규제**: weight의 제곱의 합이 아닌 가중치 합을 더해 regualrization strength λ를 곱해 오차에 더한다. L2 규제와 달리 L1 규제할 때는 일부 가중치 값이 0이된다. 이를 통해 모델에 대한 이해도가 높아지고, 모델에서 중요한 feature이 무엇인지 알 수 있다.
->https://goatlab.tistory.com/124
+
 
 ![배치 사이즈 이미지](https://github.com/leejoohyunn/images/blob/main/%EC%8A%A4%ED%81%AC%EB%A6%B0%EC%83%B7%202023-12-17%20170336.png)
 
@@ -700,7 +699,6 @@ AdaGrad 및 RMSprop의 아이디어를 결합함.
 >
 >과거의 제곱 그래디언트에 기반하여 학습률을 조정.
 각 매개변수에 대해 개별적으로 학습률을 조절함으로써 SGD의 단점을 보완.
-https://velog.io/@freesky/Optimizer
 
 >**Adagrad(Adaptive Gradient Algorithm)**:
 >
@@ -894,7 +892,7 @@ Optimizer: momentum, MSE: 0.6856392345679706
 >2. 가중치 초기화(Weight initialization) 가령, He 초기화나 Xavier 초기화가 있습니다
 >3. 배치 정규화. 각 층에 입력을 평균과 분산으로 정규화해 학습을 효율적으로 합니다. 하지만, 배치 정규화는 미니 배치 크기에 의존적이며 RNN에 적용하기 어렵다는 점이 한계입니다.
 >4. 층 정규화. 배치 정규화는 층간 정규화를 진행했다면 층 정규화는 층내 정규화를 진행하는것입니다.
->5. https://wikidocs.net/61271
+
 ```python
 import numpy as np
 import matplotlib.pyplot as plt
@@ -1023,13 +1021,13 @@ Hidden Layer Sizes: (10, 20, 30), MSE: 63.97608226871222
 
 ### 9. **합성곱 신경망(CNN)에서의 커널 크기와 스트라이드**:이미지 분류와 같은 작업에서 사용되는 CNN에서는 커널 크기와 스트라이드를 조절하여 특징을 추출하는 방식을 결정합니다.
 
->**CNN**: CNN은 영상 및 시계열 데이터에서 특징을 찾아내고 학습하기 위한 최적의 아키텍처를 제공한다. 이미지의 특징을 추출하는 부분과 클래스를 분류하는 부분으로 구성돼 있다. 특징을 추출하는 부분은 Convolutional Layer과 Pooling Layer를 겹겹이 쌓은 형태이다. CNN의 마지막 부분에는 이미지 분류(classification)을 위한 Fully Connected Layer이 추가된다.  https://rubber-tree.tistory.com/entry/%EB%94%A5%EB%9F%AC%EB%8B%9D-%EB%AA%A8%EB%8D%B8-CNN-Convolutional-Neural-Network-%EC%84%A4%EB%AA%85
+>**CNN**: CNN은 영상 및 시계열 데이터에서 특징을 찾아내고 학습하기 위한 최적의 아키텍처를 제공한다. 이미지의 특징을 추출하는 부분과 클래스를 분류하는 부분으로 구성돼 있다. 특징을 추출하는 부분은 Convolutional Layer과 Pooling Layer를 겹겹이 쌓은 형태이다. CNN의 마지막 부분에는 이미지 분류(classification)을 위한 Fully Connected Layer이 추가된다.  
 >
 >![CNN 이미지](https://github.com/leejoohyunn/images/blob/main/%EC%8A%A4%ED%81%AC%EB%A6%B0%EC%83%B7%202023-12-17%20212345.png)
 
 >**스트라이드**: 입력 데이터에 커널(필터)을 적용할 때 이동할 간격을 조절하는 것이다. 다시 말해 커널(필터)가 이동할 간격이다. 스트라이드는 출력 데이터의 크기를 조절하기 위해 사용된다.
 >
->![스트라이드 이미지](https://github.com/leejoohyunn/images/blob/main/%EC%8A%A4%ED%81%AC%EB%A6%B0%EC%83%B7%202023-12-17%20211547.png) https://excelsior-cjh.tistory.com/79
+>![스트라이드 이미지](https://github.com/leejoohyunn/images/blob/main/%EC%8A%A4%ED%81%AC%EB%A6%B0%EC%83%B7%202023-12-17%20211547.png) 
 >
 
 
