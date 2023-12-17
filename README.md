@@ -23,6 +23,85 @@
 
 ![학습률 이미지](https://github.com/leejoohyunn/images/blob/main/img.png)
 
+```python
+
+import numpy as np
+import matplotlib.pyplot as plt
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import mean_squared_error
+
+class LinearRegressionGradientDescent:
+    def __init__(self, learning_rate=0.01, n_iterations=1000):
+        self.learning_rate = learning_rate
+        self.n_iterations = n_iterations
+        self.weights = None
+        self.bias = None
+
+    def fit(self, X, y):
+        n_samples, n_features = X.shape
+        self.weights = np.zeros((n_features, 1))  # 2차원 배열로 초기화
+        self.bias = 0
+
+        for _ in range(self.n_iterations):
+            # 예측값 계산
+            y_pred = np.dot(X, self.weights) + self.bias
+
+            # 경사 하강법 업데이트
+            dw = (1/n_samples) * np.dot(X.T, (y_pred - y))
+            db = (1/n_samples) * np.sum(y_pred - y)
+
+            self.weights -= self.learning_rate * dw
+            self.bias -= self.learning_rate * db
+
+    def predict(self, X):
+        return np.dot(X, self.weights) + self.bias
+
+# 데이터 생성 및 분할
+np.random.seed(42)
+X = 2 * np.random.rand(100, 1)
+y = 4 + 3 * X + np.random.randn(100, 1)
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+# 학습률 리스트
+learning_rates = [0.1, 0.01, 0.001]
+
+# 결과 저장을 위한 딕셔너리
+results = {}
+
+# 각 학습률에 대해 모델 학습 및 평가
+for lr in learning_rates:
+    model = LinearRegressionGradientDescent(learning_rate=lr, n_iterations=1000)
+    model.fit(X_train, y_train)
+    
+    # 예측 및 평가
+    y_pred = model.predict(X_test)
+    mse = mean_squared_error(y_test, y_pred)
+    
+    # 결과 저장
+    results[lr] = {'model': model, 'mse': mse}
+
+# 결과 출력
+for lr, result in results.items():
+    print(f"Learning Rate: {lr}, MSE: {result['mse']}")
+
+# 결과 시각화
+plt.figure(figsize=(10, 6))
+for lr, result in results.items():
+    plt.plot(X_test, result['model'].predict(X_test), label=f'LR={lr}')
+
+plt.scatter(X_test, y_test, color='black', marker='o', label='Test Data')
+plt.title('Linear Regression with Different Learning Rates')
+plt.xlabel('X')
+plt.ylabel('y')
+plt.legend()
+plt.show()
+```
+```python
+Learning Rate: 0.1, MSE: 0.6536995222280376
+Learning Rate: 0.01, MSE: 0.6926651409345591
+Learning Rate: 0.001, MSE: 2.0816606850501587
+```
+![결과 이미지](https://github.com/leejoohyunn/images/blob/main/%EB%8B%A4%EC%9A%B4%EB%A1%9C%EB%93%9C%20(1).png)
 
 
 ### 2. **배치 크기(batch size)**: 모델이 각 학습 단계에서 처리하는 데이터 샘플의 개수를 나타냅니다. 적절한 배치 크기를 선택하는 것은 모델의 효율성에 영향을 미칩니다. 최적화를 진행하다가 극소값 혹은 안정점에 빠질 수 도 있어 크기가 크면 무조건 빠르고 효과적으로 최적화가 이뤄지는 것은 아닙니다. 배치 크기가 크면, 데이터의 평균적인 특성을 바탕으로 학습이 진행돼 gradient(기울기)를 크게 바꾸지 못합니다. 다시 말하면, 평균이 구해지면 특이값이 묻혀 영향력이 작아집니다. 반대로, 배치 사이즈가 작을 때는 이 구간을 빠져나오기 비교적 수월하다. 배치 사이즈는 학습 속도와 학습 성능에 모두 영향을 미치는 중요한 요소입니다. 이를 고려해 최적의 배치 사이즈를 부여해야합니다. 배치 크기는 보통 2의 제곱수를 사용합니다. CPU와 GPU의 메모리가 2의 배수여서 2의 제곱 수 일 경우에 데이터 송수신의 효율을 높일 수 있습니
@@ -36,9 +115,186 @@ https://wikidocs.net/55580
 > 미니 배치란, 전체 데이터를 N등분해 각각의 학습 데이터를 배치 방식으로 학습시킨다. 즉, 전체 데이터 세을 몇 개의 데이터셋으로 나누었을 때, 그 작은 데이터 셋의 뭉치입니다. 미니 배치를 사용하는 이유는 데이터가 많을 때, 길어지는 시간이나 데이터의 손실을 줄이기 위해서 입니다.
 https://welcome-to-dewy-world.tistory.com/86
 
+```python
+import numpy as np
+import matplotlib.pyplot as plt
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import mean_squared_error
+
+class LinearRegressionMiniBatchFixedLR:
+    def __init__(self, learning_rate=0.01, n_iterations=1000, batch_size=32):
+        self.learning_rate = learning_rate
+        self.n_iterations = n_iterations
+        self.batch_size = batch_size
+        self.weights = None
+        self.bias = None
+
+    def fit(self, X, y):
+        n_samples, n_features = X.shape
+        self.weights = np.zeros((n_features, 1))
+        self.bias = 0
+
+        for _ in range(self.n_iterations):
+            # 미니배치 샘플 선택
+            indices = np.random.choice(n_samples, size=self.batch_size, replace=False)
+            X_batch = X[indices]
+            y_batch = y[indices]
+
+            # 예측값 계산
+            y_pred = np.dot(X_batch, self.weights) + self.bias
+
+            # 경사 하강법 업데이트
+            dw = (1/self.batch_size) * np.dot(X_batch.T, (y_pred - y_batch))
+            db = (1/self.batch_size) * np.sum(y_pred - y_batch)
+
+            self.weights -= self.learning_rate * dw
+            self.bias -= self.learning_rate * db
+
+    def predict(self, X):
+        return np.dot(X, self.weights) + self.bias
+
+# 데이터 생성 및 분할
+np.random.seed(42)
+X = 2 * np.random.rand(100, 1)
+y = 4 + 3 * X + np.random.randn(100, 1)
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+# 고정된 학습률
+learning_rate = 0.01
+
+# 미니배치 사이즈 리스트
+batch_sizes = [16, 32, 64]
+
+# 결과 저장을 위한 딕셔너리
+results = {}
+
+# 각 미니배치 사이즈에 대해 모델 학습 및 평가
+for batch_size in batch_sizes:
+    model = LinearRegressionMiniBatchFixedLR(learning_rate=learning_rate, n_iterations=1000, batch_size=batch_size)
+    model.fit(X_train, y_train)
+
+    # 예측 및 평가
+    y_pred = model.predict(X_test)
+    mse = mean_squared_error(y_test, y_pred)
+
+    # 결과 저장
+    results[batch_size] = {'model': model, 'mse': mse}
+
+# 결과 출력
+for batch_size, result in results.items():
+    print(f"Batch Size: {batch_size}, MSE: {result['mse']}")
+
+# 결과 시각화
+plt.figure(figsize=(12, 8))
+for batch_size, result in results.items():
+    plt.plot(X_test, result['model'].predict(X_test), label=f'Batch Size={batch_size}')
+
+plt.scatter(X_test, y_test, color='black', marker='o', label='Test Data')
+plt.title('Linear Regression with Fixed Learning Rate and Different Batch Sizes')
+plt.xlabel('X')
+plt.ylabel('y')
+plt.legend()
+plt.show()
+```
+```python
+Batch Size: 16, MSE: 0.690311253484263
+Batch Size: 32, MSE: 0.6927622099151095
+Batch Size: 64, MSE: 0.6949990964496909
+```
+![배치 사이즈 이미지](https://github.com/leejoohyunn/images/blob/main/%EB%8B%A4%EC%9A%B4%EB%A1%9C%EB%93%9C%20(2).png)
 
 ### 3. **에포크 수(Number of Epochs)**: 전체 데이터셋을 한 번 훈련하는 것을 1 에포크라고 합니다. 에포크 수는 전체 데이터셋을 몇 번 반복해서 훈련할지를 결정합니다. 에포크 수를 높일수록, 다양한 무작위 가중치를 학습하는 것으로, 적합한 파라미터를 찾을 확률이 올라갑니다. 하지만, 에프크를 지나치게 높일 경우, 학습 데이터가 과적합되어 다른 데이터를 적용했을 때 제대로된 예측을 못합니다. 에포크는 학습 데이터셋 샘플의 수와 동일하게 하며 이는 배치수와 배치 사이즈를 곱한 값과 같습니다.
 
+```python
+import numpy as np
+import matplotlib.pyplot as plt
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import mean_squared_error
+
+class LinearRegressionFixedParams:
+    def __init__(self, learning_rate=0.01, n_iterations=1000, batch_size=32):
+        self.learning_rate = learning_rate
+        self.n_iterations = n_iterations
+        self.batch_size = batch_size
+        self.weights = None
+        self.bias = None
+
+    def fit(self, X, y):
+        n_samples, n_features = X.shape
+        self.weights = np.zeros((n_features, 1))
+        self.bias = 0
+
+        for _ in range(self.n_iterations):
+            # 미니배치 샘플 선택
+            indices = np.random.choice(n_samples, size=self.batch_size, replace=False)
+            X_batch = X[indices]
+            y_batch = y[indices]
+
+            # 예측값 계산
+            y_pred = np.dot(X_batch, self.weights) + self.bias
+
+            # 경사 하강법 업데이트
+            dw = (1/self.batch_size) * np.dot(X_batch.T, (y_pred - y_batch))
+            db = (1/self.batch_size) * np.sum(y_pred - y_batch)
+
+            self.weights -= self.learning_rate * dw
+            self.bias -= self.learning_rate * db
+
+    def predict(self, X):
+        return np.dot(X, self.weights) + self.bias
+
+# 데이터 생성 및 분할
+np.random.seed(42)
+X = 2 * np.random.rand(100, 1)
+y = 4 + 3 * X + np.random.randn(100, 1)
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+# 고정된 학습률 및 미니배치 사이즈
+learning_rate = 0.01
+batch_size = 32
+
+# 에포크 수 리스트
+n_iterations_list = [100, 500, 1000, 2000]
+
+# 결과 저장을 위한 딕셔너리
+results = {}
+
+# 각 에포크 수에 대해 모델 학습 및 평가
+for n_iterations in n_iterations_list:
+    model = LinearRegressionFixedParams(learning_rate=learning_rate, n_iterations=n_iterations, batch_size=batch_size)
+    model.fit(X_train, y_train)
+
+    # 예측 및 평가
+    y_pred = model.predict(X_test)
+    mse = mean_squared_error(y_test, y_pred)
+
+    # 결과 저장
+    results[n_iterations] = {'model': model, 'mse': mse}
+
+# 결과 출력
+for n_iterations, result in results.items():
+    print(f"Epochs: {n_iterations}, MSE: {result['mse']}")
+
+# 결과 시각화
+plt.figure(figsize=(12, 8))
+for n_iterations, result in results.items():
+    plt.plot(X_test, result['model'].predict(X_test), label=f'Epochs={n_iterations}')
+
+plt.scatter(X_test, y_test, color='black', marker='o', label='Test Data')
+plt.title('Linear Regression with Fixed Learning Rate and Batch Size, Different Epochs')
+plt.xlabel('X')
+plt.ylabel('y')
+plt.legend()
+plt.show()
+
+```
+```python
+Epochs: 100, MSE: 2.078373541112038
+Epochs: 500, MSE: 0.782228324116659
+Epochs: 1000, MSE: 0.6894744940599438
+Epochs: 2000, MSE: 0.661203028560142
+```
+![에포크](https://github.com/leejoohyunn/images/blob/main/%EB%8B%A4%EC%9A%B4%EB%A1%9C%EB%93%9C%20(3).png)
 
 ### 4. **가중치 감소(Weight Decay)**: 과적합을 방지하기 위해 가중치 감소를 사용합니다. 이는 가중치 값이 너무 크지 않도록 제한하는 역할을 합니다. 가중치 감소에는 규제(Regularization)이 이용된다. Regularization 이란 wieght의 절대값을 작게 만들며, weight의 모든 원소를 0에 가깝게해 특성이 출력에 주는 영향을 최소화로 만든다. 즉, 오버피팅되지 않도록 모델을 제한한다는 것이다. 대표적인 Regularization으로는 L1과 L2가 있다. 
 
@@ -50,6 +306,98 @@ https://welcome-to-dewy-world.tistory.com/86
 ![배치 사이즈 이미지](https://github.com/leejoohyunn/images/blob/main/%EC%8A%A4%ED%81%AC%EB%A6%B0%EC%83%B7%202023-12-17%20170336.png)
 https://sacko.tistory.com/45
 
+```python
+import numpy as np
+import matplotlib.pyplot as plt
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import mean_squared_error
+
+class LinearRegressionWeightDecay:
+    def __init__(self, learning_rate=0.01, n_iterations=1000, batch_size=32, weight_decay=0.0):
+        self.learning_rate = learning_rate
+        self.n_iterations = n_iterations
+        self.batch_size = batch_size
+        self.weight_decay = weight_decay
+        self.weights = None
+        self.bias = None
+
+    def fit(self, X, y):
+        n_samples, n_features = X.shape
+        self.weights = np.zeros((n_features, 1))
+        self.bias = 0
+
+        for _ in range(self.n_iterations):
+            # 미니배치 샘플 선택
+            indices = np.random.choice(n_samples, size=self.batch_size, replace=False)
+            X_batch = X[indices]
+            y_batch = y[indices]
+
+            # 예측값 계산
+            y_pred = np.dot(X_batch, self.weights) + self.bias
+
+            # 경사 하강법 업데이트 (가중치 감소 포함)
+            dw = (1/self.batch_size) * (np.dot(X_batch.T, (y_pred - y_batch)) + 2 * self.weight_decay * self.weights)
+            db = (1/self.batch_size) * np.sum(y_pred - y_batch)
+
+            self.weights -= self.learning_rate * dw
+            self.bias -= self.learning_rate * db
+
+    def predict(self, X):
+        return np.dot(X, self.weights) + self.bias
+
+# 데이터 생성 및 분할
+np.random.seed(42)
+X = 2 * np.random.rand(100, 1)
+y = 4 + 3 * X + np.random.randn(100, 1)
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+# 고정된 학습률 및 미니배치 사이즈
+learning_rate = 0.01
+batch_size = 32
+
+# 가중치 감소 값 리스트
+weight_decay_values = [0.0, 0.01, 0.1, 1.0]
+
+# 결과 저장을 위한 딕셔너리
+results = {}
+
+# 각 가중치 감소 값에 대해 모델 학습 및 평가
+for weight_decay in weight_decay_values:
+    model = LinearRegressionWeightDecay(learning_rate=learning_rate, n_iterations=1000, batch_size=batch_size, weight_decay=weight_decay)
+    model.fit(X_train, y_train)
+
+    # 예측 및 평가
+    y_pred = model.predict(X_test)
+    mse = mean_squared_error(y_test, y_pred)
+
+    # 결과 저장
+    results[weight_decay] = {'model': model, 'mse': mse}
+
+# 결과 출력
+for weight_decay, result in results.items():
+    print(f"Weight Decay: {weight_decay}, MSE: {result['mse']}")
+
+# 결과 시각화
+plt.figure(figsize=(12, 8))
+for weight_decay, result in results.items():
+    plt.plot(X_test, result['model'].predict(X_test), label=f'Weight Decay={weight_decay}')
+
+plt.scatter(X_test, y_test, color='black', marker='o', label='Test Data')
+plt.title('Linear Regression with Fixed Learning Rate and Batch Size, Different Weight Decay')
+plt.xlabel('X')
+plt.ylabel('y')
+plt.legend()
+plt.show()
+
+```
+```python
+Weight Decay: 0.0, MSE: 0.6899889858180998
+Weight Decay: 0.01, MSE: 0.6918531438504338
+Weight Decay: 0.1, MSE: 0.6850834668730379
+Weight Decay: 1.0, MSE: 0.6609202933086811
+```
+![가중치 감소 결과](https://github.com/leejoohyunn/images/blob/main/%EB%8B%A4%EC%9A%B4%EB%A1%9C%EB%93%9C%20(4).png)
+
 
 ### 5. **드롭아웃 비율(Dropout Rate)**:드롭아웃은 학습 중에 무작위로 일부 뉴런을 제외하여 모델의 일반화 성능을 향상시키는 데 사용됩니다. 드롭아웃 비율은 제외될 뉴런의 비율을 나타냅니다.일반적으로 학습할 때만 드롭아웃을 사용하고, 예측시에는 사용하지 않는다. 학습할 때 인공 신경망이 특정 뉴런 또는 특정 조합에 의존적이게 되는것을 방지해준다.
 
@@ -59,6 +407,101 @@ https://sacko.tistory.com/45
 >여러 모델을 종합적으로 고려해 최적의 결과를 찾는것이다. 학습할 수 있는 장비가 많을 때 사용하는 방법으로, 다수의 돗립적인 학습 모델을 만들어 각자 학습한 뒤 모델들을 합쳐 한 번의 예측을 만드는것입니다. 이러한 점에서 앙상블은 드롭아웃과 유사하다는 것을 알 수 있습니다. 
 https://childult-programmer.tistory.com/44
 >
+```python
+import numpy as np
+import matplotlib.pyplot as plt
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import mean_squared_error
+
+class LinearRegressionDropout:
+    def __init__(self, learning_rate=0.01, n_iterations=1000, batch_size=32, dropout_rate=0.0):
+        self.learning_rate = learning_rate
+        self.n_iterations = n_iterations
+        self.batch_size = batch_size
+        self.dropout_rate = dropout_rate
+        self.weights = None
+        self.bias = None
+
+    def fit(self, X, y):
+        n_samples, n_features = X.shape
+        self.weights = np.zeros((n_features, 1))
+        self.bias = 0
+
+        for _ in range(self.n_iterations):
+            # 미니배치 샘플 선택
+            indices = np.random.choice(n_samples, size=self.batch_size, replace=False)
+            X_batch = X[indices]
+            y_batch = y[indices]
+
+            # 예측값 계산
+            y_pred = np.dot(X_batch, self.weights) + self.bias
+
+            # 드롭아웃 적용
+            mask = np.random.rand(*X_batch.shape) > self.dropout_rate
+            X_batch *= mask
+
+            # 경사 하강법 업데이트
+            dw = (1/self.batch_size) * np.dot(X_batch.T, (y_pred - y_batch))
+            db = (1/self.batch_size) * np.sum(y_pred - y_batch)
+
+            self.weights -= self.learning_rate * dw
+            self.bias -= self.learning_rate * db
+
+    def predict(self, X):
+        return np.dot(X, self.weights) + self.bias
+
+# 데이터 생성 및 분할
+np.random.seed(42)
+X = 2 * np.random.rand(100, 1)
+y = 4 + 3 * X + np.random.randn(100, 1)
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+# 고정된 학습률 및 미니배치 사이즈
+learning_rate = 0.01
+batch_size = 32
+
+# 드롭아웃 값 리스트
+dropout_rates = [0.0, 0.2, 0.5, 0.8]
+
+# 결과 저장을 위한 딕셔너리
+results = {}
+
+# 각 드롭아웃 값에 대해 모델 학습 및 평가
+for dropout_rate in dropout_rates:
+    model = LinearRegressionDropout(learning_rate=learning_rate, n_iterations=1000, batch_size=batch_size, dropout_rate=dropout_rate)
+    model.fit(X_train, y_train)
+
+    # 예측 및 평가
+    y_pred = model.predict(X_test)
+    mse = mean_squared_error(y_test, y_pred)
+
+    # 결과 저장
+    results[dropout_rate] = {'model': model, 'mse': mse}
+
+# 결과 출력
+for dropout_rate, result in results.items():
+    print(f"Dropout Rate: {dropout_rate}, MSE: {result['mse']}")
+
+# 결과 시각화
+plt.figure(figsize=(12, 8))
+for dropout_rate, result in results.items():
+    plt.plot(X_test, result['model'].predict(X_test), label=f'Dropout Rate={dropout_rate}')
+
+plt.scatter(X_test, y_test, color='black', marker='o', label='Test Data')
+plt.title('Linear Regression with Fixed Learning Rate and Batch Size, Different Dropout Rates')
+plt.xlabel('X')
+plt.ylabel('y')
+plt.legend()
+plt.show()
+
+```
+```python
+Dropout Rate: 0.0, MSE: 0.6991444738804115
+Dropout Rate: 0.2, MSE: 0.6753189195400063
+Dropout Rate: 0.5, MSE: 0.6403026506559619
+Dropout Rate: 0.8, MSE: 0.8668981023338229
+```
+![드롭아웃 결과](https://github.com/leejoohyunn/images/blob/main/%EB%8B%A4%EC%9A%B4%EB%A1%9C%EB%93%9C%20(5).png)
 
 
 ### 6. **활성화 함수(Activation Function)**:딥러닝 네트워크에서 노드에 입력된 값들을 비선형 함수에 통과시킨 후 다음 레이어로 전달하는데, 이때 활성화함수를 사용한다. 비선형 함수를 사용하는 이유는 딥러닝 모델의 레이어 층을 깊게 구성할 수 있기 때문이다. 활성화 함수의 종류로는 sigmoid 함수, Tanh 함수, ReLU 함수, Leaky ReLU, PReLU, ELU, Maxout 등이 있다.
@@ -127,6 +570,122 @@ https://childult-programmer.tistory.com/44
 https://m.blog.naver.com/PostView.naver?isHttpsRedirect=true&blogId=handuelly&logNo=221824080339
 ![활성화함수 이미지](https://github.com/leejoohyunn/images/blob/main/%EC%8A%A4%ED%81%AC%EB%A6%B0%EC%83%B7%202023-12-17%20181409.png)
 
+```python
+import numpy as np
+import matplotlib.pyplot as plt
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import mean_squared_error
+
+class LinearRegressionActivation:
+    def __init__(self, learning_rate=0.01, n_iterations=1000, batch_size=32, activation_function='linear'):
+        self.learning_rate = learning_rate
+        self.n_iterations = n_iterations
+        self.batch_size = batch_size
+        self.activation_function = activation_function
+        self.weights = None
+        self.bias = None
+
+    def linear(self, x):
+        return x
+
+    def sigmoid(self, x):
+        return 1 / (1 + np.exp(-x))
+
+    def tanh(self, x):
+        return np.tanh(x)
+
+    def relu(self, x):
+        return np.maximum(0, x)
+
+    def leaky_relu(self, x, alpha=0.01):
+        return np.where(x > 0, x, alpha * x)
+
+    def prelu(self, x, alpha=0.01):
+        return np.where(x > 0, x, alpha * x)
+
+    def elu(self, x, alpha=1.0):
+        return np.where(x > 0, x, alpha * (np.exp(x) - 1))
+
+    def fit(self, X, y):
+        n_samples, n_features = X.shape
+        self.weights = np.zeros((n_features, 1))
+        self.bias = 0
+
+        activation_function = getattr(self, self.activation_function, self.linear)
+
+        for _ in range(self.n_iterations):
+            # 미니배치 샘플 선택
+            indices = np.random.choice(n_samples, size=self.batch_size, replace=False)
+            X_batch = X[indices]
+            y_batch = y[indices]
+
+            # 예측값 계산 및 활성화 함수 적용
+            y_pred = activation_function(np.dot(X_batch, self.weights) + self.bias)
+
+            # 경사 하강법 업데이트
+            dw = (1/self.batch_size) * np.dot(X_batch.T, (y_pred - y_batch))
+            db = (1/self.batch_size) * np.sum(y_pred - y_batch)
+
+            self.weights -= self.learning_rate * dw
+            self.bias -= self.learning_rate * db
+
+    def predict(self, X):
+        activation_function = getattr(self, self.activation_function, self.linear)
+        return activation_function(np.dot(X, self.weights) + self.bias)
+
+# 데이터 생성 및 분할
+np.random.seed(42)
+X = 2 * np.random.rand(100, 1)
+y = 4 + 3 * X + np.random.randn(100, 1)
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+# 고정된 학습률, 미니배치 사이즈 및 다양한 활성화 함수
+learning_rate = 0.01
+batch_size = 32
+activation_functions = ['linear', 'sigmoid', 'tanh', 'relu', 'leaky_relu', 'prelu', 'elu']
+
+# 결과 저장을 위한 딕셔너리
+results = {}
+
+# 각 활성화 함수에 대해 모델 학습 및 평가
+for activation_function in activation_functions:
+    model = LinearRegressionActivation(learning_rate=learning_rate, n_iterations=1000, batch_size=batch_size, activation_function=activation_function)
+    model.fit(X_train, y_train)
+
+    # 예측 및 평가
+    y_pred = model.predict(X_test)
+    mse = mean_squared_error(y_test, y_pred)
+
+    # 결과 저장
+    results[activation_function] = {'model': model, 'mse': mse}
+
+# 결과 출력
+for activation_function, result in results.items():
+    print(f"Activation Function: {activation_function}, MSE: {result['mse']}")
+
+# 결과 시각화
+plt.figure(figsize=(12, 8))
+for activation_function, result in results.items():
+    plt.plot(X_test, result['model'].predict(X_test), label=f'Activation Function={activation_function}')
+
+plt.scatter(X_test, y_test, color='black', marker='o', label='Test Data')
+plt.title('Linear Regression with Fixed Learning Rate and Batch Size, Different Activation Functions')
+plt.xlabel('X')
+plt.ylabel('y')
+plt.legend()
+plt.show()
+```
+```python
+Activation Function: linear, MSE: 0.6899889858180998
+Activation Function: sigmoid, MSE: 39.93863846944045
+Activation Function: tanh, MSE: 39.93863846944045
+Activation Function: relu, MSE: 0.6857353119803922
+Activation Function: leaky_relu, MSE: 0.6872081168858777
+Activation Function: prelu, MSE: 0.6953053685875947
+Activation Function: elu, MSE: 0.6943654170950561
+```
+![활성화 함수 임지](https://github.com/leejoohyunn/images/blob/main/%EB%8B%A4%EC%9A%B4%EB%A1%9C%EB%93%9C%20(6).png)
+
 
 ### 7. **최적화 알고리즘(Optimizer)**: 딥러닝 학습시 손실함수의 최솟값을 찾아가는 것을 최적화(Optimization)이라고 하며, 이를 수행하는 알고리즘이 최적화 알고리즘(Optimizer)이다. 모델의 가중치를 업데이트하는 데 사용되는 최적화 알고리즘을 선택합니다. 대표적으로는 SGD, Adam, RMSprop, Adagrad,NAG, Momentum 등이 있습니다.
 
@@ -163,6 +722,174 @@ https://velog.io/@freesky/Optimizer
 >과거의 그래디언트 정보를 사용하여 가중치 업데이트.
 기존 SGD에 비해 더 빠른 수렴을 도모하며, 지역 최소값에서 덜 갇히는 경향.
 https://heeya-stupidbutstudying.tistory.com/entry/ML-%EC%8B%A0%EA%B2%BD%EB%A7%9D%EC%97%90%EC%84%9C%EC%9D%98-Optimizer-%EC%97%AD%ED%95%A0%EA%B3%BC-%EC%A2%85%EB%A5%98
+```python
+import numpy as np
+import matplotlib.pyplot as plt
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import mean_squared_error
+
+class LinearRegressionOptimizer:
+    def __init__(self, learning_rate=0.01, n_iterations=1000, batch_size=32, optimizer='sgd'):
+        self.learning_rate = learning_rate
+        self.n_iterations = n_iterations
+        self.batch_size = batch_size
+        self.optimizer = optimizer
+        self.weights = None
+        self.bias = None
+        self.velocity = None
+
+    def sgd_update(self, dw, db):
+        self.weights -= self.learning_rate * dw
+        self.bias -= self.learning_rate * db
+
+    def adam_update(self, dw, db, beta1=0.9, beta2=0.999, epsilon=1e-8):
+        if self.velocity is None:
+            self.velocity = {'dw': 0, 'db': 0}
+            self.momentum = {'dw': 0, 'db': 0}
+            self.t = 0
+
+        self.t += 1
+        self.momentum['dw'] = beta1 * self.momentum['dw'] + (1 - beta1) * dw
+        self.momentum['db'] = beta1 * self.momentum['db'] + (1 - beta1) * db
+
+        self.velocity['dw'] = beta2 * self.velocity['dw'] + (1 - beta2) * (dw**2)
+        self.velocity['db'] = beta2 * self.velocity['db'] + (1 - beta2) * (db**2)
+
+        m_dw_hat = self.momentum['dw'] / (1 - beta1**self.t)
+        m_db_hat = self.momentum['db'] / (1 - beta1**self.t)
+
+        v_dw_hat = self.velocity['dw'] / (1 - beta2**self.t)
+        v_db_hat = self.velocity['db'] / (1 - beta2**self.t)
+
+        self.weights -= self.learning_rate * m_dw_hat / (np.sqrt(v_dw_hat) + epsilon)
+        self.bias -= self.learning_rate * m_db_hat / (np.sqrt(v_db_hat) + epsilon)
+
+    def rmsprop_update(self, dw, db, gamma=0.9, epsilon=1e-8):
+        if self.velocity is None:
+            self.velocity = {'dw': 0, 'db': 0}
+
+        self.velocity['dw'] = gamma * self.velocity['dw'] + (1 - gamma) * (dw**2)
+        self.velocity['db'] = gamma * self.velocity['db'] + (1 - gamma) * (db**2)
+
+        self.weights -= self.learning_rate * dw / (np.sqrt(self.velocity['dw']) + epsilon)
+        self.bias -= self.learning_rate * db / (np.sqrt(self.velocity['db']) + epsilon)
+
+    def adagrad_update(self, dw, db, epsilon=1e-8):
+        if self.velocity is None:
+            self.velocity = {'dw': 0, 'db': 0}
+
+        self.velocity['dw'] += dw**2
+        self.velocity['db'] += db**2
+
+        self.weights -= self.learning_rate * dw / (np.sqrt(self.velocity['dw']) + epsilon)
+        self.bias -= self.learning_rate * db / (np.sqrt(self.velocity['db']) + epsilon)
+
+    def nag_update(self, dw, db, mu=0.9):
+        if self.velocity is None:
+            self.velocity = {'dw': 0, 'db': 0}
+
+        self.velocity['dw'] = mu * self.velocity['dw'] - self.learning_rate * dw
+        self.velocity['db'] = mu * self.velocity['db'] - self.learning_rate * db
+
+        self.weights += self.velocity['dw']
+        self.bias += self.velocity['db']
+
+    def momentum_update(self, dw, db, mu=0.9):
+        if self.velocity is None:
+            self.velocity = {'dw': 0, 'db': 0}
+
+        self.velocity['dw'] = mu * self.velocity['dw'] - self.learning_rate * dw
+        self.velocity['db'] = mu * self.velocity['db'] - self.learning_rate * db
+
+        self.weights += self.velocity['dw']
+        self.bias += self.velocity['db']
+
+    def fit(self, X, y):
+        n_samples, n_features = X.shape
+        self.weights = np.zeros((n_features, 1))
+        self.bias = 0
+
+        for _ in range(self.n_iterations):
+            # 미니배치 샘플 선택
+            indices = np.random.choice(n_samples, size=self.batch_size, replace=False)
+            X_batch = X[indices]
+            y_batch = y[indices]
+
+            # 예측값 계산
+            y_pred = np.dot(X_batch, self.weights) + self.bias
+
+            # 경사 하강법 업데이트
+            dw = (1/self.batch_size) * np.dot(X_batch.T, (y_pred - y_batch))
+            db = (1/self.batch_size) * np.sum(y_pred - y_batch)
+
+            # 옵티마이저에 따라 업데이트
+            if self.optimizer == 'sgd':
+                self.sgd_update(dw, db)
+            elif self.optimizer == 'adam':
+                self.adam_update(dw, db)
+            elif self.optimizer == 'rmsprop':
+                self.rmsprop_update(dw, db)
+            elif self.optimizer == 'adagrad':
+                self.adagrad_update(dw, db)
+            elif self.optimizer == 'nag':
+                self.nag_update(dw, db)
+            elif self.optimizer == 'momentum':
+                self.momentum_update(dw, db)
+
+    def predict(self, X):
+        return np.dot(X, self.weights) + self.bias
+
+# 데이터 생성 및 분할
+np.random.seed(42)
+X = 2 * np.random.rand(100, 1)
+y = 4 + 3 * X + np.random.randn(100, 1)
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+# 고정된 학습률, 미니배치 사이즈 및 다양한 옵티마이저
+learning_rate = 0.01
+batch_size = 32
+optimizers = ['sgd', 'adam', 'rmsprop', 'adagrad', 'nag', 'momentum']
+
+# 결과 저장을 위한 딕셔너리
+results = {}
+
+# 각 옵티마이저에 대해 모델 학습 및 평가
+for optimizer in optimizers:
+    model = LinearRegressionOptimizer(learning_rate=learning_rate, n_iterations=1000, batch_size=batch_size, optimizer=optimizer)
+    model.fit(X_train, y_train)
+
+    # 예측 및 평가
+    y_pred = model.predict(X_test)
+    mse = mean_squared_error(y_test, y_pred)
+
+    # 결과 저장
+    results[optimizer] = {'model': model, 'mse': mse}
+
+# 결과 출력
+for optimizer, result in results.items():
+    print(f"Optimizer: {optimizer}, MSE: {result['mse']}")
+
+# 결과 시각화
+plt.figure(figsize=(12, 8))
+for optimizer, result in results.items():
+    plt.plot(X_test, result['model'].predict(X_test), label=f'Optimizer={optimizer}')
+
+plt.scatter(X_test, y_test, color='black', marker='o', label='Test Data')
+plt.title('Linear Regression with Fixed Learning Rate and Batch Size, Different Optimizers')
+plt.xlabel('X')
+plt.ylabel('y')
+plt.legend()
+plt.show()
+```
+```python
+Optimizer: sgd, MSE: 0.6899889858180998
+Optimizer: adam, MSE: 0.8153083663743448
+Optimizer: rmsprop, MSE: 0.6450898835713961
+Optimizer: adagrad, MSE: 36.80737819137021
+Optimizer: nag, MSE: 0.6625120212608344
+Optimizer: momentum, MSE: 0.6856392345679706
+```
+![optimizer result](https://github.com/leejoohyunn/images/blob/main/%EB%8B%A4%EC%9A%B4%EB%A1%9C%EB%93%9C%20(7).png)
 
 
 ### 8. **은닉층 수와 뉴런 수**:신경망의 구조를 결정하는 하이퍼파라미터로, 은닉층의 수와 각 은닉층의 뉴런 수를 조절합니다. 일반적으로 다층 퍼셉트론에선 3~5개의 은닉층을 쌓고, CNN을 통한 이미지 처리에는많게는 1000개의 은닉층이 쌓이기도 한다. 하지만 은닉층이 증가하면 기울기 소실(Gradient Vanishing)이 발생하기도 한다
@@ -173,7 +900,131 @@ https://heeya-stupidbutstudying.tistory.com/entry/ML-%EC%8B%A0%EA%B2%BD%EB%A7%9D
 >3. 배치 정규화. 각 층에 입력을 평균과 분산으로 정규화해 학습을 효율적으로 합니다. 하지만, 배치 정규화는 미니 배치 크기에 의존적이며 RNN에 적용하기 어렵다는 점이 한계입니다.
 >4. 층 정규화. 배치 정규화는 층간 정규화를 진행했다면 층 정규화는 층내 정규화를 진행하는것입니다.
 >5. https://wikidocs.net/61271
+```python
+import numpy as np
+import matplotlib.pyplot as plt
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import mean_squared_error
+from sklearn.impute import SimpleImputer
 
+class NeuralNetwork:
+    def __init__(self, hidden_layer_sizes=(10,), learning_rate=0.01, n_iterations=1000, batch_size=32):
+        self.hidden_layer_sizes = hidden_layer_sizes
+        self.learning_rate = learning_rate
+        self.n_iterations = n_iterations
+        self.batch_size = batch_size
+        self.weights, self.bias = self.initialize_parameters()
+
+    def initialize_parameters(self):
+        hidden_layer_sizes = [1] + list(self.hidden_layer_sizes) + [1]
+        weights = [np.random.randn(hidden_layer_sizes[i], hidden_layer_sizes[i+1]) for i in range(len(hidden_layer_sizes)-1)]
+        bias = [np.zeros((1, hidden_layer_sizes[i+1])) for i in range(len(hidden_layer_sizes)-1)]
+        return weights, bias
+
+    def relu(self, x):
+        return np.maximum(0, x)
+
+    def relu_derivative(self, x):
+        return np.where(x > 0, 1, 0)
+
+    def forward_pass(self, X, weights, bias):
+        activations = [X]
+        for w, b in zip(weights[:-1], bias[:-1]):
+            activations.append(self.relu(np.dot(activations[-1], w) + b))
+        activations.append(np.dot(activations[-1], weights[-1]) + bias[-1])
+        return activations
+
+    def compute_loss(self, y_true, y_pred):
+        return mean_squared_error(y_true, y_pred)
+
+    def backward_pass(self, X, y, activations, weights, bias):
+        n_samples = X.shape[0]
+        gradients = []
+
+        # 역전파
+        error = y - activations[-1]
+        gradients.append(error)
+
+        for i in range(len(weights)-2, -1, -1):
+            error = gradients[-1].dot(weights[i+1].T) * self.relu_derivative(activations[i+1])
+            gradients.append(error)
+
+        gradients.reverse()
+
+        # 가중치 및 편향 업데이트
+        for i in range(len(weights)):
+            weights[i] += self.learning_rate * activations[i].T.dot(gradients[i]) / n_samples
+            bias[i] += self.learning_rate * np.sum(gradients[i], axis=0, keepdims=True) / n_samples
+
+        return gradients
+
+    def fit(self, X, y):
+        weights, bias = self.initialize_parameters()
+        for _ in range(self.n_iterations):
+            # 미니배치 샘플 선택
+            indices = np.random.choice(X.shape[0], size=self.batch_size, replace=False)
+            X_batch, y_batch = X[indices], y[indices]
+
+            # 순방향 전파
+            activations = self.forward_pass(X_batch, weights, bias)
+
+            # 손실 계산
+            loss = self.compute_loss(y_batch, activations[-1])
+
+            # 역전파
+            gradients = self.backward_pass(X_batch, y_batch, activations, weights, bias)
+
+    def predict(self, X, weights, bias):
+        activations = self.forward_pass(X, weights, bias)
+        return activations[-1]
+
+# 데이터 생성 및 분할
+np.random.seed(42)
+X = 2 * np.random.rand(100, 1)
+y = 4 + 3 * X + np.random.randn(100, 1)
+
+# 10%의 데이터에 결측값 추가
+X.ravel()[np.random.choice(X.size, int(X.size * 0.1), replace=False)] = np.nan
+y.ravel()[np.random.choice(y.size, int(y.size * 0.1), replace=False)] = np.nan
+
+# 결측값을 평균값으로 대체
+imputer = SimpleImputer(strategy='mean')
+X = imputer.fit_transform(X)
+y = imputer.fit_transform(y)
+
+# 데이터 분할
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+# 각 은닉층 수에 대해 모델 학습 및 평가
+hidden_layer_sizes_list = [(10,), (10, 20), (10, 20, 30)]
+
+for hidden_layer_sizes in hidden_layer_sizes_list:
+    model = NeuralNetwork(hidden_layer_sizes=hidden_layer_sizes, learning_rate=0.01, n_iterations=1000, batch_size=32)
+    model.fit(X_train, y_train)
+
+    # 모델 평가
+    y_pred = model.predict(X_test, model.weights, model.bias)
+    mse = mean_squared_error(y_test, y_pred)
+
+    # 결과 출력
+    print(f"Hidden Layer Sizes: {hidden_layer_sizes}, MSE: {mse}")
+
+    # 결과 시각화
+    plt.scatter(X_test, y_test, color='black', marker='o', label='Test Data')
+    plt.plot(X_test, y_pred, label=f'Hidden Layer Sizes: {hidden_layer_sizes}', alpha=0.7)
+    plt.title('Neural Network Regression with Varying Hidden Layer Sizes')
+    plt.xlabel('X')
+    plt.ylabel('y')
+    plt.legend()
+
+plt.show()
+```
+```python
+Hidden Layer Sizes: (10,), MSE: 32.41469324515866
+Hidden Layer Sizes: (10, 20), MSE: 32.0595348591773
+Hidden Layer Sizes: (10, 20, 30), MSE: 63.97608226871222
+```
+![hidden layer result](https://github.com/leejoohyunn/images/blob/main/%EB%8B%A4%EC%9A%B4%EB%A1%9C%EB%93%9C%20(8).png)
 
 ### 9. **합성곱 신경망(CNN)에서의 커널 크기와 스트라이드**:이미지 분류와 같은 작업에서 사용되는 CNN에서는 커널 크기와 스트라이드를 조절하여 특징을 추출하는 방식을 결정합니다.
 
